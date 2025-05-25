@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebenezer International School - Teacher Portal</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+     <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7ff;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.2);
+            margin-bottom: 3rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+        }
+        
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .teacher-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-success {
+            background-color: var(--success-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #3aa8d8;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #e5177a;
+        }
+        
+        .questions-list {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 1rem;
+        }
+        
+        .question-item {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .question-text {
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        
+        .options-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .option {
+            background-color: white;
+            padding: 0.8rem;
+            border-radius: 8px;
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        
+        .option.correct::before {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--success-color);
+        }
+        
+        .question-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 1rem;
+        }
+        
+        .question-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-published {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: var(--success-color);
+        }
+        
+        .status-draft {
+            background-color: rgba(247, 37, 133, 0.2);
+            color: var(--danger-color);
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 2rem;
+        }
+        
+        .tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .options-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h1>Ebenezer International School</h1>
+                </div>
+                <div class="teacher-info">
+                    <div class="teacher-avatar">JS</div>
+                    <div>
+                        <div class="teacher-name">John Smith</div>
+                        <div class="teacher-role">Science Department</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="create">Create Question</div>
+            <div class="tab" data-tab="manage">Manage Questions</div>
+        </div>
+        
+        <div class="tab-content active" id="create-tab">
+            <div class="main-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">New Question</h2>
+                        <div class="card-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                    </div>
+                    
+                    <form id="question-form">
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <select id="subject" class="form-control">
+                                <option value="english">English Language</option>
+                                <option value="math">Mathematics</option>
+                                <option value="chemistry">Chemistry</option>
+                                <option value="physics">Physics</option>
+                                <option value="biology">Biology</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="difficulty">Difficulty Level</label>
+                            <select id="difficulty" class="form-control">
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="question-text">Question Text</label>
+                            <textarea id="question-text" class="form-control" placeholder="Enter your question here..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Options</label>
+                            <div class="options-list">
+                                <div class="form-group">
+                                    <div class="option-input">
+                                        <input type="text" id="option1" class="form-control" placeholder="Option 1 (Correct Answer)">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="option-input">
+                                        <input type="text" id="option2" class="form-control" placeholder="Option 2">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="option-input">
+                                        <input type="text" id="option3" class="form-control" placeholder="Option 3">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="option-input">
+                                        <input type="text" id="option4" class="form-control" placeholder="Option 4">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="image-url">Image URL (Optional)</label>
+                            <input type="text" id="image-url" class="form-control" placeholder="https://example.com/image.jpg">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="calculation"> This is a calculation question
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-save"></i> Save Question
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Preview</h2>
+                        <div class="card-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                    </div>
+                    
+                    <div id="question-preview">
+                        <div class="preview-placeholder">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
+                            <p>Your question preview will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="manage-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Manage Questions</h2>
+                    <div class="card-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-subject">Filter by Subject</label>
+                    <select id="filter-subject" class="form-control">
+                        <option value="all">All Subjects</option>
+                        <option value="english">English Language</option>
+                        <option value="math">Mathematics</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="physics">Physics</option>
+                        <option value="biology">Biology</option>
+                    </select>
+                </div>
+                
+                <div class="questions-list" id="questions-list">
+                    <!-- Questions will be loaded here -->
+                    <div class="loading-placeholder">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
+                        <p>Loading questions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  
+
+
+
+     <script>
+      const firebaseConfig = {
+  apiKey: "AIzaSyBBOzEXqF06A_o-Yyjz3Yf8zE-i7Q-L-5o",
+  authDomain: "eisquiz.firebaseapp.com",
+  databaseURL: "https://eisquiz-default-rtdb.firebaseio.com", // Remove trailing slash
+  projectId: "eisquiz",
+  storageBucket: "eisquiz.appspot.com", // Changed from firebasestorage.app
+  messagingSenderId: "26896570103",
+  appId: "1:26896570103:web:5329bdd97a3aada7b7e5f2",
+  measurementId: "G-TQWRDNDG1E"
+};
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Test Firebase connection
+const testRef = firebase.database().ref('test_connection');
+testRef.set({ timestamp: new Date().toString() })
+  .then(() => console.log("Firebase write successful - connection works"))
+  .catch((error) => console.error("Firebase error:", error));
+
+        // DOM Elements
+        const questionForm = document.getElementById('question-form');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const filterSubject = document.getElementById('filter-subject');
+        const questionsList = document.getElementById('questions-list');
+        
+        // Question database structure
+        let questionDatabase = {
+            english: [],
+            math: [],
+            chemistry: [],
+            physics: [],
+            biology: []
+        };
+
+        // Load questions from Firebase
+        function loadQuestionsFromFirebase() {
+            const questionsRef = database.ref('questions');
+            questionsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // Clear existing questions
+                    for (const subject in questionDatabase) {
+                        questionDatabase[subject] = [];
+                    }
+                    
+                    // Add questions from Firebase
+                    for (const subject in data) {
+                        if (questionDatabase.hasOwnProperty(subject)) {
+                            questionDatabase[subject] = data[subject];
+                        }
+                    }
+                    
+                    // Refresh the questions list if we're in manage tab
+                    if (document.getElementById('manage-tab').classList.contains('active')) {
+                        loadQuestions();
+                    }
+                }
+            }, (error) => {
+                console.error("Error loading questions:", error);
+            });
+        }
+
+        // Save questions to Firebase
+        function saveQuestionsToFirebase() {
+            const questionsRef = database.ref('questions');
+            questionsRef.set(questionDatabase)
+                .then(() => console.log("Questions saved to Firebase"))
+                .catch((error) => console.error("Error saving questions:", error));
+        }
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                
+                if (tab.dataset.tab === 'manage') {
+                    loadQuestions();
+                }
+            });
+        });
+        
+        // Form submission
+        questionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const subject = document.getElementById('subject').value;
+            const difficulty = document.getElementById('difficulty').value;
+            const questionText = document.getElementById('question-text').value.trim();
+            const option1 = document.getElementById('option1').value.trim();
+            const option2 = document.getElementById('option2').value.trim();
+            const option3 = document.getElementById('option3').value.trim();
+            const option4 = document.getElementById('option4').value.trim();
+            const imageUrl = document.getElementById('image-url').value.trim();
+            const isCalculation = document.getElementById('calculation').checked;
+            
+            if (!questionText || !option1 || !option2 || !option3 || !option4) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            const newQuestion = {
+                question: questionText,
+                options: [option1, option2, option3, option4],
+                answer: option1, // First option is correct
+                image: imageUrl || null,
+                difficulty: difficulty,
+                calculation: isCalculation,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Add to local database
+            questionDatabase[subject].push(newQuestion);
+            
+            // Save to Firebase
+            saveQuestionsToFirebase();
+            
+            // Clear form and update preview
+            questionForm.reset();
+            updatePreview();
+            
+            // Show success message
+            alert('Question saved successfully!');
+            
+            // If in manage tab, refresh the list
+            if (document.getElementById('manage-tab').classList.contains('active')) {
+                loadQuestions();
+            }
+        });
+
+        // Filter questions
+        filterSubject.addEventListener('change', loadQuestions);
+        
+        // Load questions for management
+        function loadQuestions() {
+            const subjectFilter = filterSubject.value;
+            questionsList.innerHTML = '';
+            
+            if (subjectFilter === 'all') {
+                // Show all questions from all subjects
+                for (const subject in questionDatabase) {
+                    if (questionDatabase[subject].length > 0) {
+                        const subjectHeader = document.createElement('h3');
+                        subjectHeader.textContent = subject.charAt(0).toUpperCase() + subject.slice(1);
+                        subjectHeader.style.margin = '20px 0 10px';
+                        questionsList.appendChild(subjectHeader);
+                        
+                        displayQuestionsForSubject(subject, questionDatabase[subject]);
+                    }
+                }
+            } else {
+                // Show questions for selected subject
+                displayQuestionsForSubject(subjectFilter, questionDatabase[subjectFilter]);
+            }
+        }
+        
+        // Display questions for a specific subject
+        function displayQuestionsForSubject(subject, questions) {
+            if (!questions || questions.length === 0) {
+                questionsList.innerHTML += `<p>No questions found for ${subject}.</p>`;
+                return;
+            }
+            
+            questions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+                
+                const optionsHtml = question.options.map((option, i) => `
+                    <div class="option ${i === 0 ? 'correct' : ''}">
+                        ${String.fromCharCode(65 + i)}. ${option}
+                    </div>
+                `).join('');
+                
+                questionItem.innerHTML = `
+                    <div class="question-text">${question.question}</div>
+                    <div class="options-list">
+                        ${optionsHtml}
+                    </div>
+                    <div class="question-meta">
+                        <div>
+                            <span>${subject} • ${question.difficulty}</span>
+                            ${question.calculation ? '<span> • Calculation</span>' : ''}
+                        </div>
+                        <div>${new Date(question.createdAt).toLocaleDateString()}</div>
+                    </div>
+                    <div class="question-actions">
+                        <button class="btn btn-danger btn-sm delete-btn" data-subject="${subject}" data-index="${index}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                    ${question.image ? `<div><small>Image: ${question.image}</small></div>` : ''}
+                `;
+                
+                questionsList.appendChild(questionItem);
+            });
+            
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const subject = e.target.closest('.delete-btn').dataset.subject;
+                    const index = parseInt(e.target.closest('.delete-btn').dataset.index);
+                    
+                    if (confirm('Are you sure you want to delete this question?')) {
+                        // Remove from local database
+                        questionDatabase[subject].splice(index, 1);
+                        
+                        // Update Firebase
+                        saveQuestionsToFirebase();
+                        
+                        // Reload questions
+                        loadQuestions();
+                    }
+                });
+            });
+        }
+        
+        // Preview update (as you type)
+        document.getElementById('question-text').addEventListener('input', updatePreview);
+        document.getElementById('option1').addEventListener('input', updatePreview);
+        document.getElementById('option2').addEventListener('input', updatePreview);
+        document.getElementById('option3').addEventListener('input', updatePreview);
+        document.getElementById('option4').addEventListener('input', updatePreview);
+        
+        function updatePreview() {
+            const questionText = document.getElementById('question-text').value.trim();
+            const option1 = document.getElementById('option1').value.trim();
+            const option2 = document.getElementById('option2').value.trim();
+            const option3 = document.getElementById('option3').value.trim();
+            const option4 = document.getElementById('option4').value.trim();
+            
+            const preview = document.getElementById('question-preview');
+            
+            if (!questionText && !option1 && !option2 && !option3 && !option4) {
+                preview.innerHTML = `
+                    <div class="preview-placeholder">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
+                        <p>Your question preview will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const optionsHtml = [
+                { text: option1, correct: true },
+                { text: option2, correct: false },
+                { text: option3, correct: false },
+                { text: option4, correct: false }
+            ].filter(opt => opt.text).map((opt, index) => `
+                <div class="option ${opt.correct ? 'correct' : ''}">
+                    ${String.fromCharCode(65 + index)}. ${opt.text}
+                </div>
+            `).join('');
+            
+            preview.innerHTML = `
+                <div class="question-text">${questionText || '[Question text will appear here]'}</div>
+                <div class="options-list">
+                    ${optionsHtml || '<p>Options will appear here</p>'}
+                </div>
+            `;
+        }
+        
+        // Initialize
+        updatePreview();
+        loadQuestionsFromFirebase();
+    </script>
+</body>
+</html>
