@@ -34,10 +34,37 @@
     <link rel="manifest" href="/manifest.json">
    
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
 
      <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+  const fabricCanvas = new fabric.Canvas('drawing-canvas');
+
+  // Example rectangle with dimensions
+  const rect = new fabric.Rect({
+    left: 100,
+    top: 100,
+    fill: 'transparent',
+    stroke: 'black',
+    width: 150,
+    height: 100
+  });
+  fabricCanvas.add(rect);
+
+  const label = new fabric.Text('150 x 100', {
+    left: 110,
+    top: 90,
+    fontSize: 14
+  });
+  fabricCanvas.add(label);
+</script>
+
     
     <style>
         :root {
@@ -421,9 +448,318 @@
                 text-align: center;
             }
         }
+
+
+
+        /* Dropdown styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-item {
+    width: 100%;
+    padding: 8px 12px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 4px;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 15px;
+    width: 80%;
+    max-width: 700px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: black;
+}
+
+/* Drawing board styles */
+.drawing-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.canvas-container {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#drawing-canvas {
+    background-color: white;
+    cursor: crosshair;
+}
+
+.drawing-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tool-btn {
+    padding: 8px 12px;
+    background-color: #f1f1f1;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tool-btn.active {
+    background-color: #4361ee;
+    color: white;
+}
+
+.shape-preview {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px dashed #ddd;
+    border-radius: 8px;
+}
+
+/* Formula editor styles */
+.formula-editor {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: monospace;
+    margin-bottom: 15px;
+}
+
+.formula-preview {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    min-height: 50px;
+}
+
+.formula-templates {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.formula-template {
+    padding: 8px;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.formula-template:hover {
+    background-color:#e1e1e1;
+}
+
+
+.arrow-buttons {
+  display: inline-flex;
+  gap: 5px;
+  margin-right: 10px;
+}
+
+.arrow-buttons .toolbar-btn {
+  padding: 5px 10px;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    background-color: inherit; /* or set a specific color */
+  }
+
+  .main-content input,
+  .main-content button,
+  .main-content select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .card-title {
+    font-size: 1.2rem;
+  }
+
+  .form-group {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .form-control,
+  .form-group input,
+  .form-group select,
+  .option-input input {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
+
+  .text-editor-toolbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+
+  .toolbar-btn,
+  .dropdown {
+    flex: 1 1 auto;
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .dropdown-content {
+    position: static;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .dropdown-item {
+    flex: 1 1 45%;
+    padding: 0.3rem;
+    font-size: 0.9rem;
+  }
+
+  #question-text {
+    min-height: 120px;
+  }
+
+  .btn-block {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  #question-preview {
+    overflow-x: auto;
+  }
+
+  .preview-placeholder {
+    text-align: center;
+    font-size: 1rem;
+    padding: 1rem 0;
+  }
+}
+
+
+
+/* Always use flex */
+.small-flex {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Optional: Improve button responsiveness */
+.small-flex button {
+  flex: 0 1 auto;
+  min-width: 60px;
+  max-width: 20%;
+}
+@media (max-width: 770px) {
+  .small-flex {
+    display: block; /* ❌ REMOVE or override this if present anywhere */
+  }
+}
+@media (max-width: 770px) {
+  .small-flex {
+    display: flex !important;
+    flex-wrap: wrap;
+  }
+}
+
+
+
+
+
+
     </style>
 </head>
-<body>
+<body >
     <header>
         <div class="container">
             <div class="header-content">
@@ -432,10 +768,10 @@
                     <h1>Ebenezer International School</h1>
                 </div>
                 <div class="teacher-info">
-                    <div class="teacher-avatar">JS</div>
+                    <div class="teacher-avatar">EIS</div>
                     <div>
-                        <div class="teacher-name">John Smith</div>
-                        <div class="teacher-role">Science Department</div>
+                        <div class="teacher-name">Subject Teacher</div>
+                        <div class="teacher-role">ICT Department</div>
                     </div>
                 </div>
             </div>
@@ -449,7 +785,7 @@
         </div>
         
         <div class="tab-content active" id="create-tab">
-            <div class="main-content">
+            <div class="main-content" >
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">New Question</h2>
@@ -482,15 +818,51 @@
                         <div class="form-group">
                             <label for="question-text">Question Text</label>
                             <div class="text-editor-toolbar">
-                                <button type="button" class="toolbar-btn" data-command="bold" title="Bold"><i class="fas fa-bold"></i></button>
-                                <button type="button" class="toolbar-btn" data-command="italic" title="Italic"><i class="fas fa-italic"></i></button>
-                                <button type="button" class="toolbar-btn" data-command="underline" title="Underline"><i class="fas fa-underline"></i></button>
-                                <div class="color-picker-container">
-                                    <button type="button" class="toolbar-btn" data-command="forecolor" title="Text Color"><i class="fas fa-palette"></i></button>
-                                    <input type="color" class="color-picker" value="#000000" data-command="forecolor">
+
+
+                                <div class="small-flex">
+                                        
+
+    <!-- Basic formatting -->
+    <button type="button" class="toolbar-btn" data-command="bold" title="Bold"><i class="fas fa-bold"></i></button>
+    <button type="button" class="toolbar-btn" data-command="italic" title="Italic"><i class="fas fa-italic"></i></button>
+    <button type="button" class="toolbar-btn" data-command="underline" title="Underline"><i class="fas fa-underline"></i></button>
+    
+    <!-- Text color -->
+    <div class="color-picker-container">
+        <button type="button" class="toolbar-btn" data-command="forecolor" title="Text Color"><i class="fas fa-palette"></i></button>
+        <input type="color" class="color-picker" value="#000000" data-command="forecolor">
+    </div>
+    
+    <!-- Advanced formatting -->
+    <button type="button" class="toolbar-btn" data-command="superscript" title="Superscript"><i class="fas fa-superscript"></i></button>
+    <button type="button" class="toolbar-btn" data-command="subscript" title="Subscript"><i class="fas fa-subscript"></i></button>
+    <!-- Symbols and math -->
+   
+    
+    <div class="dropdown" style="display:none;" >
+        <button type="button" class="toolbar-btn" title="Insert Fraction" style="display: none;"><i class="fas fa-divide"></i> Fractions</button>
+        <div class="dropdown-content">
+            <button type="button" class="dropdown-item" data-command="insertFraction" data-type="simple">Simple Fraction</button>
+            <button type="button" class="dropdown-item" data-command="insertFraction" data-type="complex">Complex Fraction</button>
+        </div>
+    </div>
+    <!-- Add type="button" to prevent form submission -->
+<button type="button" class="toolbar-btn" data-command="insertHTML" data-value="&rarr;">→</button>
+
+<button type="button" class="toolbar-btn" data-command="insertHTML" data-value="&harr;">⇌</button>
+
+
+    <button type="button" class="toolbar-btn" id="formula-btn" title="Insert Formula"><i class="fas fa-square-root-alt"></i> Formula</button>
+    <button type="button" class="toolbar-btn" id="drawing-btn" title="Drawing Board"><i class="fas fa-draw-polygon"></i> Drawing</button>
+</div>
                                 </div>
-                                <button type="button" class="toolbar-btn" data-command="insertText" data-value="—" title="Long Dash"><i class="fas fa-minus"></i></button>
-                            </div>
+
+
+
+
+                            
+                            
                             <div id="question-text" class="text-editor form-control" contenteditable="true" placeholder="Enter your question here..."></div>
                         </div>
                         
@@ -587,6 +959,163 @@
         </div>
     </div>
 
+
+    <!-- Formula Modal -->
+<div id="formula-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Insert Formula</h2>
+        
+        <div class="formula-preview" id="formula-preview"></div>
+        
+        <textarea class="formula-editor" id="formula-editor" placeholder="Enter LaTeX formula (e.g., \frac{a}{b}, \sqrt{x}, E=mc^2)"></textarea>
+        
+        <style>
+  .formula-templates-container {
+    max-height: 300px; /* Adjust height as needed */
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 8px;
+    background: #f9f9f9;
+  }
+  .formula-template {
+    cursor: pointer;
+    padding: 6px 8px;
+    margin: 4px 0;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid transparent;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .formula-template:hover {
+    background: #e0f0ff;
+    border-color: #3399ff;
+  }
+</style>
+
+<div id="question-text" contenteditable="true" style="border:1px solid #ccc; padding:10px; min-height:120px; width:600px;">
+  <!-- Type your question here -->
+</div>
+
+<div class="formula-templates-container" style="max-height:400px; overflow-y:auto; border:1px solid #ddd; padding:5px; width:620px;">
+  <button id="insert-formula-btn" class="btn">Insert Formula</button>
+
+  <div class="formula-template" data-formula="\frac{a}{b}">Fraction</div>
+  <div class="formula-template" data-formula="\sqrt{a}">Square Root</div>
+  <div class="formula-template" data-formula="a^2 + b^2 = c^2">Pythagorean</div>
+  <!-- ... all other formulas here ... -->
+  <div class="formula-template" data-formula="H_2O">Water</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+  document.querySelectorAll('.formula-template').forEach(item => {
+    item.addEventListener('click', () => {
+      const formula = item.getAttribute('data-formula');
+      const wrappedFormula = `\\(${formula}\\)`;  // inline math delimiters
+
+      const editor = document.getElementById('question-text');
+      if (!editor) return;
+
+      editor.focus();
+
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+
+      const textNode = document.createTextNode(wrappedFormula);
+      range.insertNode(textNode);
+
+      // Move cursor after inserted formula
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      if (window.MathJax) {
+        MathJax.typesetPromise([editor]);
+      }
+    });
+  });
+</script>
+
+
+
+<!-- Drawing Modal -->
+<div id="drawing-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Drawing Board</h2>
+        
+        <div class="drawing-container">
+            <div class="canvas-container">
+                <canvas id="drawing-canvas" width="500" height="400"></canvas>
+            </div>
+            
+            <div class="drawing-tools">
+                <button class="tool-btn active" data-tool="pencil">Pencil</button>
+                <button class="tool-btn" data-tool="line">Line</button>
+                <button class="tool-btn" data-tool="rectangle">Rectangle</button>
+                <button class="tool-btn" data-tool="circle">Circle</button>
+                <button class="tool-btn" data-tool="triangle">Triangle</button>
+                <button class="tool-btn" data-tool="arrow">Arrow</button>
+                <input type="color" id="drawing-color" value="#000000">
+                <input type="range" id="drawing-width" min="1" max="20" value="2">
+                <button class="tool-btn" id="clear-canvas">Clear</button>
+                <button class="tool-btn" id="recognize-shape">Recognize Shape</button>
+                
+                <div class="shape-preview" id="shape-preview">
+                    <h4>Shape Details</h4>
+                    <div id="shape-info">Draw a shape to see details</div>
+                    <div id="dimension-inputs" style="display: none;">
+                        <input type="number" id="dimension1" placeholder="Dimension 1">
+                        <input type="number" id="dimension2" placeholder="Dimension 2">
+                        <button id="apply-dimensions">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button id="insert-drawing-btn" class="btn" style="margin-top: 20px;">Insert Drawing</button>
+ </div>
+</div> 
+
+  <script>
+    // Set current year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hover highlight effect
+    function highlight(el) {
+      el.style.color = "#00ccff";
+    }
+
+    function unhighlight(el) {
+      el.style.color = "#ccc";
+    }
+
+    // Email copy to clipboard
+    function copyEmail() {
+      const email = document.getElementById("email").textContent;
+      navigator.clipboard.writeText(email).then(() => {
+        alert("Email copied to clipboard!");
+      });
+    }
+
+    // Smooth scroll to top
+    function scrollTopSmooth() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Responsive font size on window resize
+    window.addEventListener('resize', function () {
+      document.querySelector('footer').style.fontSize = window.innerWidth < 500 ? "14px" : "16px";
+    });
+    window.dispatchEvent(new Event('resize')); // Trigger on load
+  </script>
+</footer>
+
+
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyBBOzEXqF06A_o-Yyjz3Yf8zE-i7Q-L-5o",
@@ -662,20 +1191,22 @@
         }
 
         // Tab switching
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(c => c.classList.remove('active'));
-                
-                tab.classList.add('active');
-                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
-                
-                if (tab.dataset.tab === 'manage') {
-                    loadQuestions();
-                }
-            });
-        });
-        
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+
+        tab.classList.add('active');
+        document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+
+        if (tab.dataset.tab === 'manage') {
+            loadQuestions();
+        }
+    });
+});
+
+
+       
         // Form submission
         questionForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -752,64 +1283,65 @@
         }
         
         // Display questions for a specific subject
-        function displayQuestionsForSubject(subject, questions) {
-            if (!questions || questions.length === 0) {
-                questionsList.innerHTML += `<p>No questions found for ${subject}.</p>`;
-                return;
+       function displayQuestionsForSubject(subject, questions) {
+    if (!questions || questions.length === 0) {
+        questionsList.innerHTML += `<p>No questions found for ${subject}.</p>`;
+        return;
+    }
+    
+    questions.forEach((question, index) => {
+        const questionItem = document.createElement('div');
+        questionItem.className = 'question-item';
+        
+        const optionsHtml = question.options.map((option, i) => `
+            <div class="option ${i === 0 ? 'correct' : ''}">
+                ${String.fromCharCode(65 + i)}. ${option}
+            </div>
+        `).join('');
+        
+        questionItem.innerHTML = `
+            <div class="question-text">${question.question}</div>
+            <div class="options-list">
+                ${optionsHtml}
+            </div>
+            <div class="question-meta">
+                <div>
+                    <span>${subject} • ${question.difficulty}</span>
+                    ${question.calculation ? '<span> • Calculation</span>' : ''}
+                </div>
+                <div>${new Date(question.createdAt).toLocaleDateString()}</div>
+            </div>
+            <div class="question-actions">
+                <button class="btn btn-danger btn-sm delete-btn" data-subject="${subject}" data-index="${index}">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+            ${question.image ? `<div><small>Image: ${question.image}</small></div>` : ''}
+        `;
+        
+        questionsList.appendChild(questionItem);
+    });
+    
+    // Add event listeners to delete buttons
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const subject = e.target.closest('.delete-btn').dataset.subject;
+            const index = parseInt(e.target.closest('.delete-btn').dataset.index);
+            
+            if (confirm('Are you sure you want to delete this question?')) {
+                // Remove from local database
+                questionDatabase[subject].splice(index, 1);
+                
+                // Update Firebase
+                saveQuestionsToFirebase();
+                
+                // Reload questions
+                loadQuestions();
             }
-            
-            questions.forEach((question, index) => {
-                const questionItem = document.createElement('div');
-                questionItem.className = 'question-item';
-                
-                const optionsHtml = question.options.map((option, i) => `
-                    <div class="option ${i === 0 ? 'correct' : ''}">
-                        ${String.fromCharCode(65 + i)}. ${option}
-                    </div>
-                `).join('');
-                
-                questionItem.innerHTML = `
-                    <div class="question-text">${question.question}</div>
-                    <div class="options-list">
-                        ${optionsHtml}
-                    </div>
-                    <div class="question-meta">
-                        <div>
-                            <span>${subject} • ${question.difficulty}</span>
-                            ${question.calculation ? '<span> • Calculation</span>' : ''}
-                        </div>
-                        <div>${new Date(question.createdAt).toLocaleDateString()}</div>
-                    </div>
-                    <div class="question-actions">
-                        <button class="btn btn-danger btn-sm delete-btn" data-subject="${subject}" data-index="${index}">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    ${question.image ? `<div><small>Image: ${question.image}</small></div>` : ''}
-                `;
-                
-                questionsList.appendChild(questionItem);
-            });
-            
-            // Add event listeners to delete buttons
-            document.querySelectorAll('.delete-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const subject = e.target.closest('.delete-btn').dataset.subject;
-                    const index = parseInt(e.target.closest('.delete-btn').dataset.index);
-                    
-                    if (confirm('Are you sure you want to delete this question?')) {
-                        // Remove from local database
-                        questionDatabase[subject].splice(index, 1);
-                        
-                        // Update Firebase
-                        saveQuestionsToFirebase();
-                        
-                        // Reload questions
-                        loadQuestions();
-                    }
-                });
-            });
-        }
+        });
+    });
+}
+
         
         // Preview update (as you type)
         document.getElementById('question-text').addEventListener('input', updatePreview);
@@ -856,30 +1388,6 @@
             `;
         }
 
-        // Text Editor Functionality
-        document.querySelectorAll('.toolbar-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const command = this.dataset.command;
-                const value = this.dataset.value;
-                
-                if (command === 'insertText') {
-                    document.execCommand('insertText', false, value);
-                } else if (command === 'forecolor' && this.classList.contains('color-picker')) {
-                    document.execCommand(command, false, this.value);
-                } else {
-                    document.execCommand(command, false, null);
-                }
-                
-                // Toggle active state for bold/italic/underline
-                if (['bold', 'italic', 'underline'].includes(command)) {
-                    this.classList.toggle('active');
-                }
-                
-                // Focus back on the editor
-                document.getElementById('question-text').focus();
-            });
-        });
-
         // Handle color picker changes
         document.querySelector('.color-picker').addEventListener('change', function() {
             document.execCommand('forecolor', false, this.value);
@@ -889,6 +1397,362 @@
         // Initialize
         updatePreview();
         loadQuestionsFromFirebase();
+
+
+
+
+        // Formula editor functionality
+const formulaModal = document.getElementById('formula-modal');
+const formulaBtn = document.getElementById('formula-btn');
+const formulaEditor = document.getElementById('formula-editor');
+const formulaPreview = document.getElementById('formula-preview');
+const insertFormulaBtn = document.getElementById('insert-formula-btn');
+const formulaTemplates = document.querySelectorAll('.formula-template');
+
+// Drawing board functionality
+const drawingModal = document.getElementById('drawing-modal');
+const drawingBtn = document.getElementById('drawing-btn');
+const drawingCanvas = document.getElementById('drawing-canvas');
+const ctx = drawingCanvas.getContext('2d');
+const toolBtns = document.querySelectorAll('[data-tool]');
+const clearCanvasBtn = document.getElementById('clear-canvas');
+const recognizeShapeBtn = document.getElementById('recognize-shape');
+const insertDrawingBtn = document.getElementById('insert-drawing-btn');
+const shapeInfo = document.getElementById('shape-info');
+const dimensionInputs = document.getElementById('dimension-inputs');
+const applyDimensionsBtn = document.getElementById('apply-dimensions');
+const drawingColor = document.getElementById('drawing-color');
+const drawingWidth = document.getElementById('drawing-width');
+
+// Open modals
+formulaBtn.addEventListener('click', () => {
+    formulaModal.style.display = 'block';
+    formulaEditor.value = '';
+    formulaPreview.innerHTML = '';
+});
+
+drawingBtn.addEventListener('click', () => {
+    drawingModal.style.display = 'block';
+    resetDrawingCanvas();
+});
+
+// Close modals
+document.querySelectorAll('.close').forEach(btn => {
+    btn.addEventListener('click', () => {
+        formulaModal.style.display = 'none';
+        drawingModal.style.display = 'none';
+    });
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === formulaModal) formulaModal.style.display = 'none';
+    if (e.target === drawingModal) drawingModal.style.display = 'none';
+});
+
+// Formula template selection
+formulaTemplates.forEach(template => {
+    template.addEventListener('click', () => {
+        formulaEditor.value = template.dataset.formula;
+        updateFormulaPreview();
+    });
+});
+
+// Preview formula using MathJax
+formulaEditor.addEventListener('input', updateFormulaPreview);
+
+function updateFormulaPreview() {
+    const latex = formulaEditor.value;
+    formulaPreview.innerHTML = `\\[${latex}\\]`;
+    if (window.MathJax) MathJax.typesetPromise([formulaPreview]);
+}
+
+// Insert formula into editor
+insertFormulaBtn.addEventListener('click', () => {
+    const formula = formulaEditor.value;
+    if (formula) {
+        const formulaHTML = `<span class="formula" data-latex="${escapeHtml(formula)}">[${escapeHtml(formula)}]</span>`;
+        insertAtCursor(formulaHTML);
+        formulaModal.style.display = 'none';
+    }
+});
+
+// Drawing tools
+let isDrawing = false;
+let currentTool = 'pencil';
+let startX, startY;
+let recognizedShape = null;
+
+// Select tool
+toolBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        toolBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTool = btn.dataset.tool;
+    });
+});
+
+// Draw handlers
+drawingCanvas.addEventListener('mousedown', startDrawing);
+drawingCanvas.addEventListener('mousemove', draw);
+drawingCanvas.addEventListener('mouseup', stopDrawing);
+drawingCanvas.addEventListener('mouseout', stopDrawing);
+
+function startDrawing(e) {
+    isDrawing = true;
+    startX = e.offsetX;
+    startY = e.offsetY;
+
+    if (currentTool === 'pencil') {
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+    }
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+
+    ctx.strokeStyle = drawingColor.value;
+    ctx.lineWidth = drawingWidth.value;
+    ctx.lineCap = 'round';
+
+    switch (currentTool) {
+        case 'pencil':
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            break;
+        case 'line':
+            redrawCanvas();
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            break;
+        case 'rectangle':
+            redrawCanvas();
+            ctx.strokeRect(startX, startY, e.offsetX - startX, e.offsetY - startY);
+            break;
+        case 'circle':
+            redrawCanvas();
+            const r = Math.hypot(e.offsetX - startX, e.offsetY - startY);
+            ctx.beginPath();
+            ctx.arc(startX, startY, r, 0, 2 * Math.PI);
+            ctx.stroke();
+            break;
+        case 'triangle':
+            redrawCanvas();
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.lineTo(startX * 2 - e.offsetX, e.offsetY);
+            ctx.closePath();
+            ctx.stroke();
+            break;
+        case 'arrow':
+            redrawCanvas();
+            drawArrow(startX, startY, e.offsetX, e.offsetY);
+            break;
+    }
+}
+
+
+function recognizeShape() {
+    const shapes = ['rectangle', 'circle', 'triangle', 'line', 'arrow'];
+    recognizedShape = shapes[Math.floor(Math.random() * shapes.length)];
+    shapeInfo.innerHTML = `Recognized: ${recognizedShape}`;
+    dimensionInputs.style.display = 'block';
+}
+
+
+function stopDrawing() {
+    isDrawing = false;
+    if (currentTool === 'pencil') setTimeout(recognizeShape, 500);
+}
+
+function drawArrow(fromX, fromY, toX, toY) {
+    const headLength = 15;
+    const angle = Math.atan2(toY - fromY, toX - fromX);
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+    ctx.stroke();
+}
+
+function addShape(type, props) {
+    switch (type) {
+        case 'rectangle':
+            ctx.strokeRect(props.x, props.y, props.width, props.height);
+            drawLabel(`${props.width}`, props.x + props.width / 2, props.y + props.height + 10);
+            drawLabel(`${props.height}`, props.x - 20, props.y + props.height / 2);
+            break;
+        case 'line':
+            ctx.beginPath();
+            ctx.moveTo(props.x1, props.y1);
+            ctx.lineTo(props.x2, props.y2);
+            ctx.stroke();
+            drawAngleIfApplicable(props);
+            break;
+        // Add more shapes here
+    }
+}
+
+function drawLabel(text, x, y) {
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "#000";
+    ctx.fillText(text, x, y);
+}
+
+
+clearCanvasBtn.addEventListener('click', resetDrawingCanvas);
+
+function resetDrawingCanvas() {
+    ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    shapeInfo.innerHTML = 'Draw a shape to see details';
+    dimensionInputs.style.display = 'none';
+    recognizedShape = null;
+}
+
+function redrawCanvas() {
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = drawingCanvas.width;
+    tempCanvas.height = drawingCanvas.height;
+    tempCtx.drawImage(drawingCanvas, 0, 0);
+    ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+    ctx.drawImage(tempCanvas, 0, 0);
+}
+
+// Insert drawing
+insertDrawingBtn.addEventListener('click', () => {
+    const dataURL = drawingCanvas.toDataURL('image/png');
+    const imgHTML = `<img src="${dataURL}" alt="Drawing" style="max-width: 100%;">`;
+    insertAtCursor(imgHTML);
+    drawingModal.style.display = 'none';
+});
+
+// Insert HTML into contenteditable
+function insertAtCursor(html) {
+    const editor = document.getElementById('question-text');
+    const selection = window.getSelection();
+
+    if (selection.rangeCount) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const frag = document.createDocumentFragment();
+
+        while (div.firstChild) {
+            frag.appendChild(div.firstChild);
+        }
+
+        range.insertNode(frag);
+    } else {
+        editor.innerHTML += html;
+    }
+
+    editor.focus();
+}
+
+// Escape HTML safely
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// Toolbar formatting
+document.querySelectorAll('.toolbar-btn, .dropdown-item').forEach(button => {
+  button.addEventListener('click', function () {
+    const command = this.dataset.command;
+    const value = this.dataset.value;
+
+    if (command === 'insertHTML' && value) {
+      document.execCommand('insertHTML', false, value);
+    } else if (command === 'insertFraction') {
+      insertFraction(this.dataset.type);
+    } else if (command === 'forecolor') {
+      document.execCommand(command, false, value || '#000000');
+    } else {
+      document.execCommand(command, false, null);
+    }
+
+    if (['bold', 'italic', 'underline'].includes(command)) {
+      this.classList.toggle('active');
+    }
+
+    document.getElementById('question-text').focus();
+});
+});
+function insertFraction(type) {
+    let html = '';
+    if (type === 'simple') {
+        html = `
+        <span class="fraction" style="display:inline-block; text-align:center; vertical-align:middle;">
+            <span style="border-bottom:1px solid;">numerator</span><br>
+            <span>denominator</span>
+        </span>`;
+    } else {
+        html = `
+        <span class="fraction" style="display:inline-block; vertical-align:middle;">
+            <span>numerator</span><br>
+            <span style="border-top:1px solid;">denominator</span>
+        </span>`;
+    }
+    insertAtCursor(html);
+}
+
+
+// Utility: Insert text at cursor/caret inside contenteditable div
+function insertTextAtCursor(text) {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return false;
+
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+
+  const textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+
+  // Move caret after inserted text node
+  range.setStartAfter(textNode);
+  range.collapse(true);
+
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// Event listener for formula template clicks
+document.querySelectorAll('.formula-template').forEach(el => {
+  el.addEventListener('click', () => {
+    const formula = el.getAttribute('data-formula');
+    const editor = document.getElementById('question-text');
+    
+    // Focus editor to set cursor
+    editor.focus();
+
+    // Insert the formula LaTeX code at cursor
+    insertTextAtCursor(formula);
+  });
+});
+
+
     </script>
+
+
+
+
 </body>
 </html>
