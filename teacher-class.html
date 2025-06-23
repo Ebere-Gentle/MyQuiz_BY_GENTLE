@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select Class - Teacher Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      background: linear-gradient(to right, #e0e7ff, #fff);
+      font-family: 'Segoe UI', sans-serif;
+      
+    }
+    .container-box {
+      max-width: 1100px;
+      margin: auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h2 {
+      font-weight: bold;
+      color: #3f37c9;
+    }
+    .class-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+      text-align: center;
+      padding: 2rem 1rem;
+      cursor: pointer;
+    }
+    .class-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    .class-card h5 {
+      font-weight: 600;
+      color: #3f37c9;
+      margin-top: 1rem;
+    }
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-box">
+    <div class="header">
+      <h2><i class="fas fa-layer-group"></i> Select a Class to Enter Questions</h2>
+      <p class="text-muted">Choose the class, term and week you want to upload questions for</p>
+    </div>
+
+    <div class="class-grid">
+      <!-- Nursery -->
+      <div class="class-card" onclick="selectClass('Nursery 1')"><i class="fas fa-baby fa-2x text-danger"></i><h5>Nursery 1</h5></div>
+      <div class="class-card" onclick="selectClass('Nursery 2')"><i class="fas fa-baby fa-2x text-danger"></i><h5>Nursery 2</h5></div>
+      <div class="class-card" onclick="selectClass('Nursery 3')"><i class="fas fa-baby fa-2x text-danger"></i><h5>Nursery 3</h5></div>
+
+      <!-- Primary 1 - 6 -->
+      <div class="class-card" onclick="selectClass('Primary 1')"><i class="fas fa-book-reader fa-2x text-primary"></i><h5>Primary 1</h5></div>
+      <div class="class-card" onclick="selectClass('Primary 2')"><i class="fas fa-book-reader fa-2x text-primary"></i><h5>Primary 2</h5></div>
+      <div class="class-card" onclick="selectClass('Primary 3')"><i class="fas fa-book-reader fa-2x text-primary"></i><h5>Primary 3</h5></div>
+      <div class="class-card" onclick="selectClass('Primary 4')"><i class="fas fa-book-reader fa-2x text-primary"></i><h5>Primary 4</h5></div>
+      <div class="class-card" onclick="selectClass('Primary 5')"><i class="fas fa-book-reader fa-2x text-primary"></i><h5>Primary 5</h5></div>
+      <div class="class-card" onclick="selectClass('Primary 6')"><i class="fas fa-book-reader fa-2x text-primary"></i><h5>Primary 6</h5></div>
+
+      <!-- JSS 1 - 3 -->
+      <div class="class-card" onclick="selectClass('JSS 1')"><i class="fas fa-user-graduate fa-2x text-success"></i><h5>JSS 1</h5></div>
+      <div class="class-card" onclick="selectClass('JSS 2')"><i class="fas fa-user-graduate fa-2x text-success"></i><h5>JSS 2</h5></div>
+      <div class="class-card" onclick="selectClass('JSS 3')"><i class="fas fa-user-graduate fa-2x text-success"></i><h5>JSS 3</h5></div>
+
+      <!-- SS 1 - 3 -->
+      <div class="class-card" onclick="selectClass('SS 1')"><i class="fas fa-chalkboard-teacher fa-2x text-warning"></i><h5>SS 1</h5></div>
+      <div class="class-card" onclick="selectClass('SS 2')"><i class="fas fa-chalkboard-teacher fa-2x text-warning"></i><h5>SS 2</h5></div>
+      <div class="class-card" onclick="selectClass('SS 3')"><i class="fas fa-chalkboard-teacher fa-2x text-warning"></i><h5>SS 3</h5></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBBOzEXqF06A_o-Yyjz3Yf8zE-i7Q-L-5o",
+      authDomain: "eisquiz.firebaseapp.com",
+      databaseURL: "https://eisquiz-default-rtdb.firebaseio.com",
+      projectId: "eisquiz",
+      storageBucket: "eisquiz.appspot.com",
+      messagingSenderId: "26896570103",
+      appId: "1:26896570103:web:5329bdd97a3aada7b7e5f2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function selectClass(className) {
+      const { value: formValues } = await Swal.fire({
+        title: `Setup for ${className}`,
+        html:
+          `<label>Term</label><select id="term" class="swal2-input">
+            <option value="">Select Term</option>
+            <option value="First Term">First Term</option>
+            <option value="Second Term">Second Term</option>
+            <option value="Third Term">Third Term</option>
+          </select>` +
+          `<label>Week</label><select id="week" class="swal2-input">
+            <option value="">Select Week</option>
+            ${Array.from({length:14},(_,i)=>`<option value="Week ${i+1}">Week ${i+1}</option>`).join('')}
+          </select>`,
+        focusConfirm: false,
+        preConfirm: () => {
+          const term = document.getElementById('term').value;
+          const week = document.getElementById('week').value;
+          if (!term || !week) {
+            Swal.showValidationMessage('Please select both term and week');
+            return false;
+          }
+          return { term, week };
+        }
+      });
+
+      if (!formValues) return;
+
+      const { term, week } = formValues;
+      const teacher = JSON.parse(localStorage.getItem('teacher')) || { email: "unknown@eischool.com" };
+      const sanitizedEmail = teacher.email.replace(/\W+/g, '_');
+
+      const selectionData = {
+        class: className,
+        term: term,
+        week: week,
+        selectedAt: new Date().toISOString(),
+        teacherEmail: teacher.email
+      };
+
+      localStorage.setItem('selectedClass', className);
+      localStorage.setItem('selectedTerm', term);
+      localStorage.setItem('selectedWeek', week);
+
+      db.ref('classSelections/' + sanitizedEmail).set(selectionData)
+        .then(() => {
+          Swal.fire({
+            icon: 'success',
+            title: `Class Selected`,
+            text: `${className} • ${term} • ${week}`,
+            confirmButtonText: 'Proceed'
+          }).then(() => {
+            window.location.href = 'teacher-dashboard.html';
+          });
+        })
+        .catch(error => {
+          Swal.fire('Error', error.message, 'error');
+        });
+    }
+  </script>
+  <br>
+  <br>
+  <footer style="background-color:#003366; color:#fff; padding:40px 20px; font-family:'Segoe UI', sans-serif;">
+  <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; gap:30px;">
+
+    <!-- About Section -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">About Generation</h3>
+      <p style="line-height:1.6;">Generation is a smart quiz platform by <strong>Ebere Gentle Victor</strong>, delivering AI-powered learning for modern students across all levels.</p>
+    </div>
+
+    <!-- Contact Section -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Contact</h3>
+      <p><i class="fas fa-envelope"></i> <span id="email" style="color:#00ccff; cursor:pointer;" onclick="copyEmail()">eberevictorgentle@gmail.com</span></p>
+      <p><i class="fas fa-phone-alt"></i> <span style="color:#ccc;">+234-7069958609</span></p>
+      <p><i class="fas fa-map-marker-alt"></i> <span style="color:#ccc;">Nigeria</span></p>
+    </div>
+
+    <!-- Quick Links -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Quick Links</h3>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-home"></i> Home</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-question-circle"></i> Quizzes</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-user-graduate"></i> About Us</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-envelope-open-text"></i> Contact</a>
+    </div>
+
+    <!-- Social Media -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Follow Us</h3>
+      <p>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-facebook-f"></i></a>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-twitter"></i></a>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-instagram"></i></a>
+        <a href="#" style="color:#ccc; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-linkedin-in"></i></a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer Bottom -->
+  <div style="text-align:center; margin-top:30px; border-top:1px solid #004080; padding-top:20px;">
+    <p style="font-size:14px; color:#bbb;">&copy; <span id="year"></span> Generation by Ebere Gentle Victor. All rights reserved.</p>
+    <button onclick="scrollTopSmooth()" style="margin-top:10px; padding:8px 16px; background-color:#00ccff; color:#003366; border:none; border-radius:4px; cursor:pointer;">
+      <i class="fas fa-arrow-up"></i> Back to Top</button>
+  </div>
+
+  <script>
+    // Set current year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hover highlight effect
+    function highlight(el) {
+      el.style.color = "#00ccff";
+    }
+
+    function unhighlight(el) {
+      el.style.color = "#ccc";
+    }
+
+    // Email copy to clipboard
+    function copyEmail() {
+      const email = document.getElementById("email").textContent;
+      navigator.clipboard.writeText(email).then(() => {
+        alert("Email copied to clipboard!");
+      });
+    }
+
+    // Smooth scroll to top
+    function scrollTopSmooth() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Responsive font size on window resize
+    window.addEventListener('resize', function () {
+      document.querySelector('footer').style.fontSize = window.innerWidth < 500 ? "14px" : "16px";
+    });
+    window.dispatchEvent(new Event('resize')); // Trigger on load
+  </script>
+</footer>
+
+</body>
+</html>
