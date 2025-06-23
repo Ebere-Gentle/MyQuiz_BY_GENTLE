@@ -16,7 +16,6 @@
       background-color: #f5f7ff;
       font-family: 'Segoe UI', sans-serif;
       height: 100vh;
-      display: flex;
       align-items: center;
     }
     .login-container {
@@ -78,7 +77,7 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" style="margin-top: 50px;">
     <div class="login-container">
       <div class="school-logo">
         <i class="fas fa-graduation-cap"></i>
@@ -212,7 +211,7 @@
           showConfirmButton: false,
           timer: 1500
         }).then(() => {
-          window.location.href = 'index.html';
+          window.location.href = 'teacher-class.html';
         });
 
       } catch (error) {
@@ -246,6 +245,106 @@
         Swal.fire('Error', 'Could not send reset email. Try again.', 'error');
       }
     });
+
+    // Add this to the successful login handler
+localStorage.setItem('teacher', JSON.stringify({
+  uid: user.uid,
+  email,
+  name: email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
+  subject: subjectInput.value
+}));
   </script>
+
+  <br>
+  <br>
+
+  <footer style="background-color:#003366; color:#fff; padding:40px 20px; font-family:'Segoe UI', sans-serif;">
+  <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; gap:30px;">
+
+    <!-- About Section -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">About Generation</h3>
+      <p style="line-height:1.6;">Generation is a smart quiz platform by <strong>Ebere Gentle Victor</strong>, delivering AI-powered learning for modern students across all levels.</p>
+    </div>
+
+    <!-- Contact Section -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Contact</h3>
+      <p><i class="fas fa-envelope"></i> <span id="email" style="color:#00ccff; cursor:pointer;" onclick="copyEmail()">eberevictorgentle@gmail.com</span></p>
+      <p><i class="fas fa-phone-alt"></i> <span style="color:#ccc;">+234-7069958609</span></p>
+      <p><i class="fas fa-map-marker-alt"></i> <span style="color:#ccc;">Nigeria</span></p>
+    </div>
+
+    <!-- Quick Links -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Quick Links</h3>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-home"></i> Home</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-question-circle"></i> Quizzes</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-user-graduate"></i> About Us</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-envelope-open-text"></i> Contact</a>
+    </div>
+
+    <!-- Social Media -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Follow Us</h3>
+      <p>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-facebook-f"></i></a>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-twitter"></i></a>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-instagram"></i></a>
+        <a href="#" style="color:#ccc; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-linkedin-in"></i></a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer Bottom -->
+  <div style="text-align:center; margin-top:30px; border-top:1px solid #004080; padding-top:20px;">
+    <p style="font-size:14px; color:#bbb;">&copy; <span id="year"></span> Generation by Ebere Gentle Victor. All rights reserved.</p>
+    <button onclick="scrollTopSmooth()" style="margin-top:10px; padding:8px 16px; background-color:#00ccff; color:#003366; border:none; border-radius:4px; cursor:pointer;">
+      <i class="fas fa-arrow-up"></i> Back to Top</button>
+  </div>
+
+  <script>
+    // Set current year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hover highlight effect
+    function highlight(el) {
+      el.style.color = "#00ccff";
+    }
+
+    function unhighlight(el) {
+      el.style.color = "#ccc";
+    }
+
+    // Email copy to clipboard
+    function copyEmail() {
+      const email = document.getElementById("email").textContent;
+      navigator.clipboard.writeText(email).then(() => {
+        alert("Email copied to clipboard!");
+      });
+    }
+
+    // Smooth scroll to top
+    function scrollTopSmooth() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Responsive font size on window resize
+    window.addEventListener('resize', function () {
+      document.querySelector('footer').style.fontSize = window.innerWidth < 500 ? "14px" : "16px";
+    });
+    window.dispatchEvent(new Event('resize')); // Trigger on load
+  </script>
+</footer>
+
+  
 </body>
 </html>
