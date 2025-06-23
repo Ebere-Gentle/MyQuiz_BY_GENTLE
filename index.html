@@ -6,9 +6,7 @@
   <title>Teacher Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- TinyMCE -->
   <script src="https://cdn.tiny.cloud/1/cafvm4l45vfwbnvcpsoi78h9z33b7vj0tp66afmzt0p5jkjh/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-  <!-- MathJax for formulas -->
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <style>
@@ -82,6 +80,67 @@
       color: var(--primary-color);
       font-weight: bold;
       font-size: 1.2rem;
+    }
+    
+    .selection-banner {
+      background: linear-gradient(135deg, #3a0ca3, #4361ee);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .selection-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    
+    .selection-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+    }
+    
+    .selection-item i {
+      font-size: 1.3rem;
+    }
+    
+    .week-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .week-lock {
+      background-color: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .week-lock:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .week-lock.active {
+      background-color: #f72585;
+    }
+    
+    .week-lock.active:hover {
+      background-color: #f72585;
     }
     
     .btn-logout {
@@ -306,6 +365,19 @@
         grid-template-columns: 1fr;
       }
       
+      .selection-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .selection-info {
+        gap: 1rem;
+      }
+      
+      .selection-item {
+        font-size: 1rem;
+      }
+      
       .options-list {
         grid-template-columns: 1fr;
       }
@@ -363,7 +435,7 @@
       <div class="header-content">
         <div class="logo">
           <i class="fas fa-graduation-cap"></i>
-          <h1>Ebenezer International School</h1>
+          <h1>Ebenezer International School Owo</h1>
         </div>
         <div class="teacher-info">
           <div class="teacher-avatar" id="teacher-avatar">EIS</div>
@@ -380,6 +452,31 @@
   </header>
   
   <div class="container">
+    <div class="selection-banner" id="selection-banner">
+      <div class="selection-info">
+        <div class="selection-item">
+          <i class="fas fa-layer-group"></i>
+          <span id="current-class">Class Not Selected</span>
+        </div>
+        <div class="selection-item">
+          <i class="fas fa-calendar-alt"></i>
+          <span id="current-term">Term Not Selected</span>
+        </div>
+        <div class="selection-item">
+          <i class="fas fa-calendar-week"></i>
+          <span id="current-week">Week Not Selected</span>
+        </div>
+      </div>
+      <div class="week-controls">
+        <button id="lock-week" class="week-lock">
+          <i class="fas fa-lock"></i> Lock Week
+        </button>
+        <button id="change-selection" class="week-lock">
+          <i class="fas fa-edit"></i> Change
+        </button>
+      </div>
+    </div>
+    
     <div class="tabs">
       <div class="tab active" data-tab="create">Create Question</div>
       <div class="tab" data-tab="manage">Manage Questions</div>
@@ -597,19 +694,30 @@
     const editModal = document.getElementById('edit-modal');
     const closeModal = document.querySelector('.close');
     const logoutBtn = document.getElementById('logout-btn');
+    const lockWeekBtn = document.getElementById('lock-week');
+    const changeSelectionBtn = document.getElementById('change-selection');
+
+    // Current selection state
+    let currentSelection = {
+      class: null,
+      term: null,
+      week: null,
+      isLocked: false
+    };
     
     // Question database structure
     let questionDatabase = {
-        english: [],
-        math: [],
-        chemistry: [],
-        physics: [],
-        biology: []
+      english: [],
+      math: [],
+      chemistry: [],
+      physics: [],
+      biology: []
     };
 
     // Current teacher info
     let currentTeacher = null;
     let currentSubjectKey = null;
+    let isSaving = false;
 
     // Subject mapping
     const subjectMapping = {
@@ -667,6 +775,9 @@
       // Initialize TinyMCE editor for main form
       initEditor('#question-text');
 
+      // Load current selection
+      loadSelection();
+
       // Load questions from Firebase
       loadQuestionsFromFirebase();
 
@@ -676,6 +787,11 @@
 
     // Set up event listeners
     function setupEventListeners() {
+      // Remove existing listeners to prevent duplicates
+      questionForm.removeEventListener('submit', handleFormSubmit);
+      lockWeekBtn.removeEventListener('click', toggleWeekLock);
+      changeSelectionBtn.removeEventListener('click', changeSelection);
+      
       // Tab switching
       tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -692,10 +808,7 @@
       });
 
       // Form submission
-      questionForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveQuestion();
-      });
+      questionForm.addEventListener('submit', handleFormSubmit);
 
       // Edit form submission
       editForm.addEventListener('submit', (e) => {
@@ -706,7 +819,6 @@
       // Close modal
       closeModal.addEventListener('click', () => {
         editModal.style.display = 'none';
-        // Destroy the TinyMCE instance in the modal
         if (tinymce.get('edit-question-text')) {
           tinymce.get('edit-question-text').destroy();
         }
@@ -718,11 +830,109 @@
         window.location.href = 'teacher-login.html';
       });
 
+      // Week lock button
+      lockWeekBtn.addEventListener('click', toggleWeekLock);
+
+      // Change selection button
+      changeSelectionBtn.addEventListener('click', changeSelection);
+
       // Preview update for options
       document.getElementById('option1').addEventListener('input', updatePreview);
       document.getElementById('option2').addEventListener('input', updatePreview);
       document.getElementById('option3').addEventListener('input', updatePreview);
       document.getElementById('option4').addEventListener('input', updatePreview);
+    }
+
+    // Handle form submission with duplicate prevention
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      if (!isSaving) {
+        saveQuestion();
+      }
+    }
+
+    // Load selection from localStorage
+    function loadSelection() {
+      currentSelection.class = localStorage.getItem('selectedClass') || 'Class Not Selected';
+      currentSelection.term = localStorage.getItem('selectedTerm') || 'Term Not Selected';
+      currentSelection.week = localStorage.getItem('selectedWeek') || 'Week Not Selected';
+      
+      // Update UI
+      document.getElementById('current-class').textContent = currentSelection.class;
+      document.getElementById('current-term').textContent = currentSelection.term;
+      document.getElementById('current-week').textContent = currentSelection.week;
+      
+      // Check if week is locked
+      checkWeekLockStatus();
+    }
+
+    // Check week lock status from Firebase
+    function checkWeekLockStatus() {
+      const sanitizedEmail = currentTeacher.email.replace(/\W+/g, '_');
+      const lockRef = database.ref(`weekLocks/${sanitizedEmail}/${currentSelection.class}/${currentSelection.term}/${currentSelection.week}`);
+      
+      lockRef.on('value', (snapshot) => {
+        currentSelection.isLocked = snapshot.exists() && snapshot.val();
+        updateLockButton();
+        
+        // Disable form if locked
+        const formDisabled = currentSelection.isLocked;
+        document.getElementById('question-text').disabled = formDisabled;
+        document.getElementById('option1').disabled = formDisabled;
+        document.getElementById('option2').disabled = formDisabled;
+        document.getElementById('option3').disabled = formDisabled;
+        document.getElementById('option4').disabled = formDisabled;
+        document.getElementById('difficulty').disabled = formDisabled;
+        document.getElementById('image-url').disabled = formDisabled;
+        document.getElementById('calculation').disabled = formDisabled;
+        document.querySelector('#question-form button[type="submit"]').disabled = formDisabled;
+        
+        if (formDisabled) {
+          document.querySelector('#question-form').style.opacity = '0.7';
+          document.querySelector('#question-form').style.pointerEvents = 'none';
+        } else {
+          document.querySelector('#question-form').style.opacity = '1';
+          document.querySelector('#question-form').style.pointerEvents = 'auto';
+        }
+      });
+    }
+    
+    // Update lock button appearance
+    function updateLockButton() {
+      if (currentSelection.isLocked) {
+        lockWeekBtn.innerHTML = '<i class="fas fa-lock-open"></i> Unlock Week';
+        lockWeekBtn.classList.add('active');
+      } else {
+        lockWeekBtn.innerHTML = '<i class="fas fa-lock"></i> Lock Week';
+        lockWeekBtn.classList.remove('active');
+      }
+    }
+    
+    // Toggle week lock status
+    function toggleWeekLock() {
+      const sanitizedEmail = currentTeacher.email.replace(/\W+/g, '_');
+      const lockRef = database.ref(`weekLocks/${sanitizedEmail}/${currentSelection.class}/${currentSelection.term}/${currentSelection.week}`);
+      
+      if (currentSelection.isLocked) {
+        lockRef.remove()
+          .then(() => {
+            currentSelection.isLocked = false;
+            updateLockButton();
+          });
+      } else {
+        lockRef.set(true)
+          .then(() => {
+            currentSelection.isLocked = true;
+            updateLockButton();
+          });
+      }
+    }
+    
+    // Change class/term/week selection
+    function changeSelection() {
+      if (confirm('Are you sure you want to change your current class/term/week selection?')) {
+        window.location.href = 'teacher-class.html';
+      }
     }
 
     // Load questions from Firebase
@@ -755,17 +965,23 @@
 
     // Save questions to Firebase
     function saveQuestionsToFirebase() {
-      const questionsRef = database.ref('questions');
-      questionsRef.set(questionDatabase)
-          .then(() => console.log("Questions saved to Firebase"))
-          .catch((error) => console.error("Error saving questions:", error));
+      return database.ref('questions').set(questionDatabase)
+        .then(() => console.log("Questions saved to Firebase"))
+        .catch((error) => {
+          console.error("Error saving questions:", error);
+          throw error;
+        });
     }
 
-    // Save a new question
+    // Save a new question with duplicate prevention
     function saveQuestion() {
+      if (isSaving) return;
+      isSaving = true;
+      
       // First check if TinyMCE is initialized
       if (!tinymce.get('question-text')) {
         alert('Editor is not ready. Please wait a moment and try again.');
+        isSaving = false;
         return;
       }
       
@@ -780,46 +996,67 @@
       
       if (!questionText || !option1 || !option2 || !option3 || !option4) {
         alert('Please fill all required fields');
+        isSaving = false;
         return;
       }
       
+      // Create question with unique ID
       const newQuestion = {
+        id: 'q_' + Date.now(),
         question: questionText,
         options: [option1, option2, option3, option4],
-        answer: option1, // First option is correct
+        answer: option1,
         image: imageUrl || null,
         difficulty: difficulty,
         calculation: isCalculation,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        className: currentSelection.class,
+        term: currentSelection.term,
+        week: currentSelection.week,
+        teacherEmail: currentTeacher.email
       };
       
       // Add to local database
       questionDatabase[currentSubjectKey].push(newQuestion);
       
       // Save to Firebase
-      saveQuestionsToFirebase();
-      
-      // Clear form and update preview
-      questionForm.reset();
-      tinymce.get('question-text').setContent('');
-      updatePreview();
-      
-      // Show success message
-      alert('Question saved successfully!');
+      saveQuestionsToFirebase()
+        .then(() => {
+          // Clear form and update preview
+          questionForm.reset();
+          tinymce.get('question-text').setContent('');
+          updatePreview();
+          
+          // Show success message
+          alert('Question saved successfully!');
+        })
+        .catch(error => {
+          console.error("Error saving question:", error);
+          alert('Error saving question. Please try again.');
+        })
+        .finally(() => {
+          isSaving = false;
+        });
     }
 
-    // Load questions for management
+    // Load questions for management with filtering
     function loadQuestions() {
       questionsList.innerHTML = '';
       
-      // Only show questions for teacher's subject
-      displayQuestionsForSubject(currentSubjectKey, questionDatabase[currentSubjectKey]);
+      // Filter questions by current selection
+      const filteredQuestions = questionDatabase[currentSubjectKey].filter(q => 
+        q.className === currentSelection.class &&
+        q.term === currentSelection.term &&
+        q.week === currentSelection.week
+      );
+      
+      displayQuestionsForSubject(currentSubjectKey, filteredQuestions);
     }
     
     // Display questions for a specific subject
     function displayQuestionsForSubject(subject, questions) {
       if (!questions || questions.length === 0) {
-        questionsList.innerHTML = `<p>No questions found for ${currentTeacher.subject}.</p>`;
+        questionsList.innerHTML = `<p>No questions found for ${currentTeacher.subject} in ${currentSelection.class}, ${currentSelection.term}, ${currentSelection.week}.</p>`;
         return;
       }
       
@@ -926,13 +1163,13 @@
       }
       
       const updatedQuestion = {
+        ...questionDatabase[currentSubjectKey][index],
         question: questionText,
         options: [option1, option2, option3, option4],
-        answer: option1, // First option is correct
+        answer: option1,
         image: imageUrl || null,
         difficulty: difficulty,
         calculation: isCalculation,
-        createdAt: questionDatabase[currentSubjectKey][index].createdAt,
         updatedAt: new Date().toISOString()
       };
       
@@ -940,15 +1177,20 @@
       questionDatabase[currentSubjectKey][index] = updatedQuestion;
       
       // Save to Firebase
-      saveQuestionsToFirebase();
-      
-      // Close modal and reload questions
-      editModal.style.display = 'none';
-      tinymce.get('edit-question-text').destroy();
-      loadQuestions();
-      
-      // Show success message
-      alert('Question updated successfully!');
+      saveQuestionsToFirebase()
+        .then(() => {
+          // Close modal and reload questions
+          editModal.style.display = 'none';
+          tinymce.get('edit-question-text').destroy();
+          loadQuestions();
+          
+          // Show success message
+          alert('Question updated successfully!');
+        })
+        .catch(error => {
+          console.error("Error updating question:", error);
+          alert('Error updating question. Please try again.');
+        });
     }
 
     // Update preview (as you type)
@@ -1004,5 +1246,93 @@
     // Initialize the app when DOM is loaded
     document.addEventListener('DOMContentLoaded', initApp);
   </script>
+
+  <footer style="background-color:#003366; color:#fff; padding:40px 20px; font-family:'Segoe UI', sans-serif;">
+  <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; gap:30px;">
+
+    <!-- About Section -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">About Generation</h3>
+      <p style="line-height:1.6;">Generation is a smart quiz platform by <strong>Ebere Gentle Victor</strong>, delivering AI-powered learning for modern students across all levels.</p>
+    </div>
+
+    <!-- Contact Section -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Contact</h3>
+      <p><i class="fas fa-envelope"></i> <span id="email" style="color:#00ccff; cursor:pointer;" onclick="copyEmail()">eberevictorgentle@gmail.com</span></p>
+      <p><i class="fas fa-phone-alt"></i> <span style="color:#ccc;">+234-7069958609</span></p>
+      <p><i class="fas fa-map-marker-alt"></i> <span style="color:#ccc;">Nigeria</span></p>
+    </div>
+
+    <!-- Quick Links -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Quick Links</h3>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-home"></i> Home</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-question-circle"></i> Quizzes</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-user-graduate"></i> About Us</a>
+      <a href="#" style="color:#ccc; display:block; margin-bottom:8px; text-decoration:none;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+        <i class="fas fa-envelope-open-text"></i> Contact</a>
+    </div>
+
+    <!-- Social Media -->
+    <div style="flex:1; min-width:250px;">
+      <h3 style="color:#00aaff; margin-bottom:10px;">Follow Us</h3>
+      <p>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-facebook-f"></i></a>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-twitter"></i></a>
+        <a href="#" style="color:#ccc; margin-right:15px; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-instagram"></i></a>
+        <a href="#" style="color:#ccc; font-size:18px;" onmouseover="highlight(this)" onmouseout="unhighlight(this)">
+          <i class="fab fa-linkedin-in"></i></a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Footer Bottom -->
+  <div style="text-align:center; margin-top:30px; border-top:1px solid #004080; padding-top:20px;">
+    <p style="font-size:14px; color:#bbb;">&copy; <span id="year"></span> Generation by Ebere Gentle Victor. All rights reserved.</p>
+    <button onclick="scrollTopSmooth()" style="margin-top:10px; padding:8px 16px; background-color:#00ccff; color:#003366; border:none; border-radius:4px; cursor:pointer;">
+      <i class="fas fa-arrow-up"></i> Back to Top</button>
+  </div>
+
+  <script>
+    // Set current year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hover highlight effect
+    function highlight(el) {
+      el.style.color = "#00ccff";
+    }
+
+    function unhighlight(el) {
+      el.style.color = "#ccc";
+    }
+
+    // Email copy to clipboard
+    function copyEmail() {
+      const email = document.getElementById("email").textContent;
+      navigator.clipboard.writeText(email).then(() => {
+        alert("Email copied to clipboard!");
+      });
+    }
+
+    // Smooth scroll to top
+    function scrollTopSmooth() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Responsive font size on window resize
+    window.addEventListener('resize', function () {
+      document.querySelector('footer').style.fontSize = window.innerWidth < 500 ? "14px" : "16px";
+    });
+    window.dispatchEvent(new Event('resize')); // Trigger on load
+  </script>
+</footer>
+
 </body>
 </html>
