@@ -9,6 +9,7 @@
   <script src="https://cdn.tiny.cloud/1/cafvm4l45vfwbnvcpsoi78h9z33b7vj0tp66afmzt0p5jkjh/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root {
       --primary-color: #4361ee;
@@ -360,6 +361,14 @@
       padding: 1rem 0;
     }
     
+    .question-image {
+      max-width: 100%;
+      max-height: 200px;
+      margin: 10px 0;
+      border-radius: 8px;
+      display: block;
+    }
+    
     @media (max-width: 768px) {
       .main-content {
         grid-template-columns: 1fr;
@@ -547,6 +556,7 @@
             <div class="form-group">
               <label for="image-url">Image URL (Optional)</label>
               <input type="text" id="image-url" class="form-control" placeholder="https://example.com/image.jpg">
+              <small class="text-muted">Paste a direct image URL to display it with the question</small>
             </div>
             
             <div class="form-group">
@@ -718,6 +728,7 @@
     let currentTeacher = null;
     let currentSubjectKey = null;
     let isSaving = false;
+    let editTinyMCE = null;
 
     // Subject mapping
     const subjectMapping = {
@@ -741,7 +752,9 @@
         content_style: 'body { font-family: "Segoe UI", sans-serif; font-size: 14px; }',
         setup: function(editor) {
           editor.on('keyup change input', function() {
-            updatePreview();
+            if (selector === '#question-text') {
+              updatePreview();
+            }
           });
           if (content) {
             editor.setContent(content);
@@ -783,6 +796,9 @@
 
       // Set up event listeners
       setupEventListeners();
+      
+      // Update preview when image URL changes
+      document.getElementById('image-url').addEventListener('input', updatePreview);
     }
 
     // Set up event listeners
@@ -819,15 +835,39 @@
       // Close modal
       closeModal.addEventListener('click', () => {
         editModal.style.display = 'none';
-        if (tinymce.get('edit-question-text')) {
-          tinymce.get('edit-question-text').destroy();
+        if (editTinyMCE) {
+          editTinyMCE.destroy();
+          editTinyMCE = null;
+        }
+      });
+
+      // Close modal when clicking outside
+      window.addEventListener('click', (e) => {
+        if (e.target === editModal) {
+          editModal.style.display = 'none';
+          if (editTinyMCE) {
+            editTinyMCE.destroy();
+            editTinyMCE = null;
+          }
         }
       });
 
       // Logout button
       logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('teacher');
-        window.location.href = 'teacher-login.html';
+        Swal.fire({
+          title: 'Logout?',
+          text: 'Are you sure you want to logout?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, logout!'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            localStorage.removeItem('teacher');
+            window.location.href = 'teacher-login.html';
+          }
+        });
       });
 
       // Week lock button
@@ -913,26 +953,60 @@
       const sanitizedEmail = currentTeacher.email.replace(/\W+/g, '_');
       const lockRef = database.ref(`weekLocks/${sanitizedEmail}/${currentSelection.class}/${currentSelection.term}/${currentSelection.week}`);
       
-      if (currentSelection.isLocked) {
-        lockRef.remove()
-          .then(() => {
-            currentSelection.isLocked = false;
-            updateLockButton();
-          });
-      } else {
-        lockRef.set(true)
-          .then(() => {
-            currentSelection.isLocked = true;
-            updateLockButton();
-          });
-      }
+      const action = currentSelection.isLocked ? 'unlock' : 'lock';
+      
+      Swal.fire({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Week?`,
+        text: `Are you sure you want to ${action} this week? ${action === 'lock' ? 'You won\'t be able to modify questions after locking.' : ''}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: `Yes, ${action} it!`
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (currentSelection.isLocked) {
+            lockRef.remove()
+              .then(() => {
+                currentSelection.isLocked = false;
+                updateLockButton();
+                Swal.fire(
+                  'Unlocked!',
+                  'This week is now unlocked for editing.',
+                  'success'
+                );
+              });
+          } else {
+            lockRef.set(true)
+              .then(() => {
+                currentSelection.isLocked = true;
+                updateLockButton();
+                Swal.fire(
+                  'Locked!',
+                  'This week is now locked and cannot be modified.',
+                  'success'
+                );
+              });
+          }
+        }
+      });
     }
     
     // Change class/term/week selection
     function changeSelection() {
-      if (confirm('Are you sure you want to change your current class/term/week selection?')) {
-        window.location.href = 'teacher-class.html';
-      }
+      Swal.fire({
+        title: 'Change Selection?',
+        text: 'Are you sure you want to change your current class/term/week selection?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, change it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = 'teacher-class.html';
+        }
+      });
     }
 
     // Load questions from Firebase
@@ -949,7 +1023,7 @@
           // Add questions from Firebase
           for (const subject in data) {
             if (questionDatabase.hasOwnProperty(subject)) {
-              questionDatabase[subject] = data[subject];
+              questionDatabase[subject] = data[subject] || [];
             }
           }
           
@@ -960,6 +1034,11 @@
         }
       }, (error) => {
         console.error("Error loading questions:", error);
+        Swal.fire(
+          'Error!',
+          'Failed to load questions. Please check your connection and try again.',
+          'error'
+        );
       });
     }
 
@@ -980,7 +1059,11 @@
       
       // First check if TinyMCE is initialized
       if (!tinymce.get('question-text')) {
-        alert('Editor is not ready. Please wait a moment and try again.');
+        Swal.fire(
+          'Editor Not Ready',
+          'Please wait a moment for the editor to load and try again.',
+          'warning'
+        );
         isSaving = false;
         return;
       }
@@ -995,7 +1078,11 @@
       const isCalculation = document.getElementById('calculation').checked;
       
       if (!questionText || !option1 || !option2 || !option3 || !option4) {
-        alert('Please fill all required fields');
+        Swal.fire(
+          'Incomplete Form',
+          'Please fill all required fields before saving.',
+          'warning'
+        );
         isSaving = false;
         return;
       }
@@ -1006,246 +1093,312 @@
         question: questionText,
         options: [option1, option2, option3, option4],
         answer: option1,
-        image: imageUrl || null,
+        image: imageUrl ||null,
         difficulty: difficulty,
         calculation: isCalculation,
-        createdAt: new Date().toISOString(),
-        className: currentSelection.class,
+        class: currentSelection.class,
         term: currentSelection.term,
         week: currentSelection.week,
-        teacherEmail: currentTeacher.email
-      };
-      
-      // Add to local database
-      questionDatabase[currentSubjectKey].push(newQuestion);
-      
-      // Save to Firebase
-      saveQuestionsToFirebase()
-        .then(() => {
-          // Clear form and update preview
-          questionForm.reset();
-          tinymce.get('question-text').setContent('');
-          updatePreview();
-          
-          // Show success message
-          alert('Question saved successfully!');
-        })
-        .catch(error => {
-          console.error("Error saving question:", error);
-          alert('Error saving question. Please try again.');
-        })
-        .finally(() => {
-          isSaving = false;
-        });
-    }
+        createdBy: currentTeacher.email,
+        createdAt: new Date().toISOString()
+        };
+          // Add to local database
+  questionDatabase[currentSubjectKey].push(newQuestion);
 
-    // Load questions for management with filtering
-    function loadQuestions() {
-      questionsList.innerHTML = '';
-      
-      // Filter questions by current selection
-      const filteredQuestions = questionDatabase[currentSubjectKey].filter(q => 
-        q.className === currentSelection.class &&
-        q.term === currentSelection.term &&
-        q.week === currentSelection.week
+  // Save to Firebase
+  saveQuestionsToFirebase()
+    .then(() => {
+      Swal.fire(
+        'Saved!',
+        'Your question has been saved successfully.',
+        'success'
       );
-      
-      displayQuestionsForSubject(currentSubjectKey, filteredQuestions);
-    }
+      clearForm();
+      updatePreview();
+      if (document.getElementById('manage-tab').classList.contains('active')) {
+        loadQuestions();
+      }
+    })
+    .catch((error) => {
+      console.error("Error saving question:", error);
+      Swal.fire(
+        'Error!',
+        'Failed to save question. Please try again.',
+        'error'
+      );
+      // Remove from local database if Firebase save failed
+      questionDatabase[currentSubjectKey].pop();
+    })
+    .finally(() => {
+      isSaving = false;
+    });
+}
+
+// Clear the form
+function clearForm() {
+  tinymce.get('question-text').setContent('');
+  document.getElementById('option1').value = '';
+  document.getElementById('option2').value = '';
+  document.getElementById('option3').value = '';
+  document.getElementById('option4').value = '';
+  document.getElementById('image-url').value = '';
+  document.getElementById('calculation').checked = false;
+  document.getElementById('difficulty').value = 'easy';
+}
+
+// Load questions for the current selection
+function loadQuestions() {
+  questionsList.innerHTML = '';
+  
+  const filteredQuestions = questionDatabase[currentSubjectKey].filter(q => 
+    q.class === currentSelection.class && 
+    q.term === currentSelection.term && 
+    q.week === currentSelection.week
+  );
+  
+  if (filteredQuestions.length === 0) {
+    questionsList.innerHTML = `
+      <div class="text-center py-4">
+        <i class="fas fa-question-circle" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
+        <p>No questions found for the current selection</p>
+      </div>
+    `;
+    return;
+  }
+  
+  filteredQuestions.forEach((question, index) => {
+    const questionEl = document.createElement('div');
+    questionEl.className = 'question-item';
+    questionEl.innerHTML = `
+      <div class="question-text">${question.question}</div>
+      ${question.image ? `<img src="${question.image}" class="question-image" alt="Question Image">` : ''}
+      <div class="options-list">
+        ${question.options.map((option, i) => `
+          <div class="option ${i === 0 ? 'correct' : ''}">${option}</div>
+        `).join('')}
+      </div>
+      <div class="question-meta">
+        <span>Difficulty: <strong>${question.difficulty}</strong></span>
+        <span>${question.calculation ? '<i class="fas fa-calculator"></i> Calculation' : ''}</span>
+      </div>
+      <div class="question-actions">
+        <button class="btn btn-primary btn-sm edit-btn" data-id="${question.id}">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button class="btn btn-danger btn-sm delete-btn" data-id="${question.id}">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </div>
+    `;
+    questionsList.appendChild(questionEl);
+  });
+  
+  // Add event listeners to edit and delete buttons
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+  });
+  
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => deleteQuestion(btn.dataset.id));
+  });
+}
+
+function openEditModal(questionId) {
+  if (currentSelection.isLocked) {
+    Swal.fire('Week Locked', 'This week is locked and cannot be modified.', 'warning');
+    return;
+  }
+
+  const questions = questionDatabase[currentSubjectKey] || [];
+  const question = questions.find(q => q && q.id === questionId);
+
+  if (!question) {
+    Swal.fire('Error', 'Question not found.', 'error');
+    return;
+  }
+
+  // Set form values (except TinyMCE)
+  document.getElementById('edit-index').value = questions.findIndex(q => q && q.id === questionId);
+  document.getElementById('edit-subject').value = currentSubjectKey;
+  document.getElementById('edit-difficulty').value = question.difficulty || 'easy';
+  document.getElementById('edit-option1').value = question.options ? question.options[0] : '';
+  document.getElementById('edit-option2').value = question.options ? question.options[1] : '';
+  document.getElementById('edit-option3').value = question.options ? question.options[2] : '';
+  document.getElementById('edit-option4').value = question.options ? question.options[3] : '';
+  document.getElementById('edit-image-url').value = question.image || '';
+  document.getElementById('edit-calculation').checked = !!question.calculation;
+
+  // Show modal first
+  editModal.style.display = 'block';
+
+  // Destroy previous editor if exists
+  if (editTinyMCE) {
+    editTinyMCE.destroy();
+  }
+
+  // Initialize TinyMCE with a small delay to ensure DOM is ready
+  setTimeout(() => {
+    editTinyMCE = tinymce.init({
+      selector: '#edit-question-text',
+      apiKey: 'cafvm4l45vfwbnvcpsoi78h9z33b7vj0tp66afmzt0p5jkjh',
+      plugins: 'autoresize codesample charmap emoticons image link lists media searchreplace table visualblocks wordcount advcode help insertdatetime',
+      toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | codesample subscript superscript charmap emoticons | link image media table | removeformat help',
+      height: 200,
+      menubar: false,
+      statusbar: false,
+      content_style: 'body { font-family: "Segoe UI", sans-serif; font-size: 14px; }',
+      setup: function(editor) {
+        // Set content after initialization
+        editor.on('init', function() {
+          editor.setContent(question.question || '');
+        });
+      }
+    });
+  }, 100);
+}
+
+// Update question
+function updateQuestion() {
+  const questionIndex = document.getElementById('edit-index').value;
+  const subject = document.getElementById('edit-subject').value;
+  
+  if (questionIndex === '' || !subject) return;
+  
+  const questionText = tinymce.get('edit-question-text').getContent();
+  const option1 = document.getElementById('edit-option1').value.trim();
+  const option2 = document.getElementById('edit-option2').value.trim();
+  const option3 = document.getElementById('edit-option3').value.trim();
+  const option4 = document.getElementById('edit-option4').value.trim();
+  const imageUrl = document.getElementById('edit-image-url').value.trim();
+  const difficulty = document.getElementById('edit-difficulty').value;
+  const isCalculation = document.getElementById('edit-calculation').checked;
+  
+  if (!questionText || !option1 || !option2 || !option3 || !option4) {
+    Swal.fire(
+      'Incomplete Form',
+      'Please fill all required fields before updating.',
+      'warning'
+    );
+    return;
+  }
+  
+  // Update question in local database
+  questionDatabase[subject][questionIndex] = {
+    ...questionDatabase[subject][questionIndex],
+    question: questionText,
+    options: [option1, option2, option3, option4],
+    answer: option1,
+    image: imageUrl || null,
+    difficulty: difficulty,
+    calculation: isCalculation
+  };
+  
+  // Save to Firebase
+  saveQuestionsToFirebase()
+    .then(() => {
+      Swal.fire(
+        'Updated!',
+        'The question has been updated successfully.',
+        'success'
+      );
+      editModal.style.display = 'none';
+      if (editTinyMCE) {
+        editTinyMCE.destroy();
+        editTinyMCE = null;
+      }
+      loadQuestions();
+    })
     
-    // Display questions for a specific subject
-    function displayQuestionsForSubject(subject, questions) {
-      if (!questions || questions.length === 0) {
-        questionsList.innerHTML = `<p>No questions found for ${currentTeacher.subject} in ${currentSelection.class}, ${currentSelection.term}, ${currentSelection.week}.</p>`;
-        return;
-      }
-      
-      questions.forEach((question, index) => {
-        const questionItem = document.createElement('div');
-        questionItem.className = 'question-item';
-        
-        const optionsHtml = question.options.map((option, i) => `
-            <div class="option ${i === 0 ? 'correct' : ''}">
-                ${String.fromCharCode(65 + i)}. ${option}
-            </div>
-        `).join('');
-        
-        questionItem.innerHTML = `
-            <div class="question-text">${question.question}</div>
-            <div class="options-list">
-                ${optionsHtml}
-            </div>
-            <div class="question-meta">
-                <div>
-                    <span>${currentTeacher.subject} • ${question.difficulty}</span>
-                    ${question.calculation ? '<span> • Calculation</span>' : ''}
-                </div>
-                <div>${new Date(question.createdAt).toLocaleDateString()}</div>
-            </div>
-            <div class="question-actions">
-                <button class="btn btn-primary btn-sm edit-btn" data-index="${index}">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="btn btn-danger btn-sm delete-btn" data-index="${index}">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-            ${question.image ? `<div><small>Image: ${question.image}</small></div>` : ''}
-        `;
-        
-        questionsList.appendChild(questionItem);
-      });
-      
-      // Add event listeners to delete buttons
-      document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const index = parseInt(e.target.closest('.delete-btn').dataset.index);
-          
-          if (confirm('Are you sure you want to delete this question?')) {
-            // Remove from local database
-            questionDatabase[currentSubjectKey].splice(index, 1);
-            
-            // Update Firebase
-            saveQuestionsToFirebase();
-            
-            // Reload questions
-            loadQuestions();
-          }
-        });
-      });
-      
-      // Add event listeners to edit buttons
-      document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const index = parseInt(e.target.closest('.edit-btn').dataset.index);
-          openEditModal(index);
-        });
-      });
-    }
+}
 
-    // Open edit modal with question data
-    function openEditModal(index) {
-      const question = questionDatabase[currentSubjectKey][index];
-      
-      // Set form values
-      document.getElementById('edit-index').value = index;
-      document.getElementById('edit-subject').value = currentSubjectKey;
-      document.getElementById('edit-difficulty').value = question.difficulty;
-      document.getElementById('edit-option1').value = question.options[0];
-      document.getElementById('edit-option2').value = question.options[1];
-      document.getElementById('edit-option3').value = question.options[2];
-      document.getElementById('edit-option4').value = question.options[3];
-      document.getElementById('edit-image-url').value = question.image || '';
-      document.getElementById('edit-calculation').checked = question.calculation || false;
-      
-      // Initialize TinyMCE editor for edit modal with content
-      initEditor('#edit-question-text', question.question);
-      
-      // Show modal
-      editModal.style.display = 'block';
-    }
+function deleteQuestion(questionId) {
+  if (currentSelection.isLocked) {
+    Swal.fire('Week Locked', 'This week is locked and cannot be modified.', 'warning');
+    return;
+  }
 
-    // Update question
-    function updateQuestion() {
-      const index = document.getElementById('edit-index').value;
-      const difficulty = document.getElementById('edit-difficulty').value;
-      const questionText = tinymce.get('edit-question-text').getContent();
-      const option1 = document.getElementById('edit-option1').value.trim();
-      const option2 = document.getElementById('edit-option2').value.trim();
-      const option3 = document.getElementById('edit-option3').value.trim();
-      const option4 = document.getElementById('edit-option4').value.trim();
-      const imageUrl = document.getElementById('edit-image-url').value.trim();
-      const isCalculation = document.getElementById('edit-calculation').checked;
-      
-      if (!questionText || !option1 || !option2 || !option3 || !option4) {
-        alert('Please fill all required fields');
-        return;
-      }
-      
-      const updatedQuestion = {
-        ...questionDatabase[currentSubjectKey][index],
-        question: questionText,
-        options: [option1, option2, option3, option4],
-        answer: option1,
-        image: imageUrl || null,
-        difficulty: difficulty,
-        calculation: isCalculation,
-        updatedAt: new Date().toISOString()
-      };
-      
-      // Update in local database
-      questionDatabase[currentSubjectKey][index] = updatedQuestion;
-      
+  Swal.fire({
+    title: 'Delete Question?',
+    text: 'Are you sure you want to delete this question? This action cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const questions = questionDatabase[currentSubjectKey] || [];
+      const validQuestions = questions.filter(q => q && q.id);  // Filter out invalid entries
+
+      const questionIndex = validQuestions.findIndex(q => q.id === questionId);
+      if (questionIndex === -1) return;
+
+      // Remove from validQuestions array
+      validQuestions.splice(questionIndex, 1);
+
+      // Replace the database entry with the filtered & updated list
+      questionDatabase[currentSubjectKey] = validQuestions;
+
       // Save to Firebase
       saveQuestionsToFirebase()
         .then(() => {
-          // Close modal and reload questions
-          editModal.style.display = 'none';
-          tinymce.get('edit-question-text').destroy();
+          Swal.fire('Deleted!', 'The question has been deleted.', 'success');
           loadQuestions();
-          
-          // Show success message
-          alert('Question updated successfully!');
         })
-        .catch(error => {
-          console.error("Error updating question:", error);
-          alert('Error updating question. Please try again.');
+        .catch((error) => {
+          console.error("Error deleting question:", error);
+          Swal.fire('Error!', 'Failed to delete question. Please try again.', 'error');
+          loadQuestionsFromFirebase(); // Reload to restore
         });
     }
+  });
+}
 
-    // Update preview (as you type)
-    function updatePreview() {
-      // Get content from TinyMCE editor
-      const questionText = tinymce.get('question-text') ? tinymce.get('question-text').getContent() : '';
-      
-      // Get option values
-      const option1 = document.getElementById('option1').value.trim();
-      const option2 = document.getElementById('option2').value.trim();
-      const option3 = document.getElementById('option3').value.trim();
-      const option4 = document.getElementById('option4').value.trim();
-      
-      const preview = document.getElementById('question-preview');
-      
-      // Check if all fields are empty
-      if (!questionText && !option1 && !option2 && !option3 && !option4) {
-        preview.innerHTML = `
-          <div class="preview-placeholder">
-            <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
-            <p>Your question preview will appear here</p>
-          </div>
-        `;
-        return;
-      }
-      
-      // Generate options HTML
-      const optionsHtml = [
-        { text: option1, correct: true },
-        { text: option2, correct: false },
-        { text: option3, correct: false },
-        { text: option4, correct: false }
-      ].filter(opt => opt.text).map((opt, i) => `
-        <div class="option ${opt.correct ? 'correct' : ''}">
-          ${String.fromCharCode(65 + i)}. ${opt.text}
-        </div>
-      `).join('');
-      
-      // Update preview HTML
-      preview.innerHTML = `
-        <div class="question-item">
-          <div class="question-text">${questionText || '<em>No question text entered</em>'}</div>
-          ${optionsHtml ? `<div class="options-list">${optionsHtml}</div>` : ''}
-        </div>
-      `;
-      
-      // Render MathJax if available
-      if (typeof MathJax !== 'undefined') {
-        MathJax.typesetPromise();
-      }
-    }
 
-    // Initialize the app when DOM is loaded
-    document.addEventListener('DOMContentLoaded', initApp);
-  </script>
+// Update question preview
+function updatePreview() {
+  const questionText = tinymce.get('question-text')?.getContent() || '';
+  const option1 = document.getElementById('option1').value.trim();
+  const option2 = document.getElementById('option2').value.trim();
+  const option3 = document.getElementById('option3').value.trim();
+  const option4 = document.getElementById('option4').value.trim();
+  const imageUrl = document.getElementById('image-url').value.trim();
+  
+  let previewHTML = '';
+  
+  if (questionText || option1 || option2 || option3 || option4) {
+    previewHTML = `
+      <div class="question-preview-content">
+        <div class="question-text">${questionText || '<span style="color:#999">[Question text will appear here]</span>'}</div>
+        ${imageUrl ? `<img src="${imageUrl}" class="question-image" alt="Preview Image" onerror="this.style.display='none'">` : ''}
+        <div class="options-list">
+          <div class="option correct">${option1 || '<span style="color:#999">[Correct answer]</span>'}</div>
+          <div class="option">${option2 || '<span style="color:#999">[Option 2]</span>'}</div>
+          <div class="option">${option3 || '<span style="color:#999">[Option 3]</span>'}</div>
+          <div class="option">${option4 || '<span style="color:#999">[Option 4]</span>'}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    previewHTML = `
+      <div class="preview-placeholder">
+        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
+        <p>Your question preview will appear here</p>
+      </div>
+    `;
+  }
+  
+  document.getElementById('question-preview').innerHTML = previewHTML;
+  
+  // Re-render MathJax if present
+  if (window.MathJax) {
+    MathJax.typesetPromise();
+  }
+}
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', initApp);
+</script> 
 
 <footer style="background-color:#003366; color:#fff; padding:40px 20px; font-family:'Segoe UI', sans-serif;">
   <div style="max-width:1200px; margin:auto; display:flex; flex-wrap:wrap; justify-content:space-between; gap:30px;">
@@ -1331,7 +1484,5 @@
     window.dispatchEvent(new Event('resize')); // Trigger on load
   </script>
 </footer>
-
-
-</body>
+</body> 
 </html>
